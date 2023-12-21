@@ -135,7 +135,6 @@ mappings = {
 "shippingWeight": "shippingWeight/text()",
 "width": "width/text()",
 "features": "features/*/text()"  # Note the match all here to get the subfields
-
 '''
 
 def get_opensearch(the_host="localhost"):
@@ -195,6 +194,16 @@ def index_file(file, index_name, host="localhost", max_docs=2000000, batch_size=
     logger.debug(f'{docs_indexed} documents indexed in {time_indexing}')
     return docs_indexed, time_indexing
 
+def set_refresh_interval(client, index_name, refresh_interval):
+    index_settings = {
+        "settings": {
+            "index": {
+                "refresh_interval": refresh_interval
+            }
+        }
+    }
+    return client.indices.put_settings(body=index_settings, index=index_name)
+
 
 @click.command()
 @click.option('--source_dir', '-s', help='XML files source directory')
@@ -215,6 +224,8 @@ def main(source_dir: str, file_glob: str, index_name: str, workers: int, host: s
     client = get_opensearch(host)
 
     #TODO: set the refresh interval
+    set_refresh_interval(client, index_name, refresh_interval)
+
     logger.debug(client.indices.get_settings(index=index_name))
     start = perf_counter()
     time_indexing = 0
@@ -228,6 +239,8 @@ def main(source_dir: str, file_glob: str, index_name: str, workers: int, host: s
     finish = perf_counter()
     logger.info(f'Done. {docs_indexed} were indexed in {(finish - start)/60} minutes.  Total accumulated time spent in `bulk` indexing: {time_indexing/60} minutes')
     # TODO set refresh interval back to 5s
+    set_refresh_interval(client, index_name, refresh_interval="5s")
+
     logger.debug(client.indices.get_settings(index=index_name))
 
 if __name__ == "__main__":

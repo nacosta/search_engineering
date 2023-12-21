@@ -1,3 +1,4 @@
+mkdir -p /home/gitpod/.kaggle
 
 read -p "Please enter your Kaggle API token here (e.g. {\"username\":\"corise\",\"key\":\"3536356fgdf\"}): " api_token
 echo "Your Kaggle API token is:" $api_token
